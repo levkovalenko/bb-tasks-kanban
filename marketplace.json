@@ -1,0 +1,44 @@
+{
+  "$schema": "https://getbb.app/schemas/marketplace-v2.schema.json",
+  "schemaVersion": 2,
+  "name": "levkovalenko-plugins",
+  "displayName": "Kovalenko Plugins",
+  "description": "BB plugins by Lev Kovalenko.",
+  "categories": [
+    {
+      "id": "tasks-and-workflows",
+      "displayName": "Tasks & Workflows",
+      "description": "Plan, track, route, schedule, or automate work."
+    }
+  ],
+  "plugins": [
+    {
+      "id": "tasks-kanban",
+      "displayName": "Tasks Kanban",
+      "description": "Turns BB's built-in Tasks into a live Kanban board. Drag cards across all six statuses, create and edit tasks, set priorities and due dates, manage labels, and comment — every change goes straight into the Tasks tracker that bb tasks and agents use, so the board never drifts from the data. Works with any tasks project, any project in BB. The interface follows your BB language: Russian and English.",
+      "icon": "Workflow",
+      "tags": [
+        "tasks",
+        "kanban",
+        "board",
+        "backlog",
+        "status",
+        "priority",
+        "labels",
+        "comments",
+        "i18n"
+      ],
+      "author": {
+        "name": "Lev Kovalenko",
+        "github": "levkovalenko"
+      },
+      "category": "tasks-and-workflows",
+      "source": {
+        "git": {
+          "url": "https://github.com/levkovalenko/bb-tasks-kanban.git",
+          "range": "^0.1.0"
+        }
+      }
+    }
+  ]
+}
