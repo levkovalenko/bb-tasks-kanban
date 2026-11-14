@@ -839,7 +839,7 @@ export default definePluginApp((app) => {
     id: "board",
     // The panel label follows the UI locale (en/ru), same as every string.
     title: t("panel.title"),
-    icon: "Workflow",
+    icon: "SectionMove",
     path: "board",
     component: BoardPage,
   });

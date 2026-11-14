@@ -44,7 +44,7 @@ bb plugin install tasks-kanban@levkovalenko-plugins
 bb plugin install git:https://github.com/levkovalenko/bb-tasks-kanban.git@v0.1.0
 ```
 
-Дальше откройте вкладку **«Доска задач»** (иконка Workflow) в левом сайдбаре
+Дальше откройте вкладку **«Доска задач»** (иконка SectionMove) в левом сайдбаре
 — она доступна на весь проект, из любого треда.
 
 ## Как это работает

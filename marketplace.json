@@ -16,7 +16,7 @@
       "id": "tasks-kanban",
       "displayName": "Tasks Kanban",
       "description": "Turns BB's built-in Tasks into a live Kanban board. Drag cards across all six statuses, create and edit tasks, set priorities and due dates, manage labels, and comment — every change goes straight into the Tasks tracker that bb tasks and agents use, so the board never drifts from the data. Works with any tasks project, any project in BB. The interface follows your BB language: Russian and English.",
-      "icon": "Workflow",
+      "icon": "SectionMove",
       "tags": [
         "tasks",
         "kanban",

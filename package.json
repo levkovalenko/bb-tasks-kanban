@@ -1,6 +1,6 @@
 {
   "name": "bb-plugin-tasks-kanban",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A live Kanban board for BB's built-in Tasks: drag & drop across all six statuses, create, edit, comment, label. Russian and English UI.",
   "type": "module",
   "license": "MIT",
@@ -29,7 +29,7 @@
     "name": "Tasks Kanban",
     "description": "A live Kanban board over BB's built-in Tasks: every card and column, drag & drop, create, edit, comment, label — project-wide. English and Russian UI.",
     "branding": {
-      "icon": "Workflow"
+      "icon": "SectionMove"
     },
     "server": "./server.ts",
     "app": "./app.tsx"

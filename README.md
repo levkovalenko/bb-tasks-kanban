@@ -46,7 +46,7 @@ Or directly from Git:
 bb plugin install git:https://github.com/levkovalenko/bb-tasks-kanban.git@v0.1.0
 ```
 
-Then open the **Task board** panel (Workflow icon) in the left sidebar — it is
+Then open the **Task board** panel (SectionMove icon) in the left sidebar — it is
 available project-wide, from any thread.
 
 ## How it works
