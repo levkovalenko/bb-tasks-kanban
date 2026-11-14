@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/levkovalenko/bb-tasks-kanban/actions/workflows/ci.yml/badge.svg)](https://github.com/levkovalenko/bb-tasks-kanban/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
-[![bb plugin](https://img.shields.io/badge/bb-plugin-0.2.0-brightgreen)](./package.json)
+[![bb plugin](https://img.shields.io/badge/bb-plugin-0.2.1-brightgreen)](./package.json)
 
 **Русская версия: [README.ru.md](./README.ru.md)**
 
@@ -43,7 +43,7 @@ bb plugin install tasks-kanban@levkovalenko-plugins
 Or directly from Git:
 
 ```sh
-bb plugin install git:https://github.com/levkovalenko/bb-tasks-kanban.git@v0.2.0
+bb plugin install git:https://github.com/levkovalenko/bb-tasks-kanban.git@v0.2.1
 ```
 
 Then open the **Task board** panel (SectionMove icon) in the left sidebar — it is
@@ -76,6 +76,13 @@ On the plugin's settings page (Tools → Tasks Kanban):
   Canceled for a five-column board).
 
 Changes apply to the open board immediately, no reload needed.
+
+> **Language note.** The board content always follows the Board language
+> setting. The settings-page labels and the sidebar panel title are fixed
+> at plugin load — they use the host/browser language and don't switch when
+> you change the setting (the server can't see the setting before it is
+> chosen; reload the plugin or use a matching browser language to refresh
+> them).
 
 ## Development
 

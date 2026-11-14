@@ -11,6 +11,7 @@
 
 import { defineRpcContract, type BbPluginApi } from "@get-bb/plugin-sdk";
 import { z } from "zod";
+import { detectLocale, translate, type MessageKey } from "./lib/i18n";
 
 // ---------------------------------------------------------------------------
 // Models that mirror the built-in tasks plugin's DTOs (validated on the wire).
@@ -290,61 +291,74 @@ export default async function plugin(bb: BbPluginApi) {
   // Declarative settings: the host renders them on this plugin's settings
   // page. onChange fires on every effective-value change, so every open
   // board refetches (the channel also covers task writes).
+  //
+  // Labels are localized at define time from the host locale (Node exposes
+  // the OS language through navigator.language): this is the best the
+  // server can know before the user picks the "Board language" setting
+  // itself. The board content follows that setting at all times.
+  const hostLocale = detectLocale();
+  const st = (key: MessageKey) => translate(hostLocale, key);
   const settings = bb.settings.define({
     language: {
-      type: "string",
-      label: "Board language",
-      description: "Interface language: auto (follow the browser), en, or ru.",
+      type: "select",
+      label: st("settings.language"),
+      description: st("settings.language.desc"),
+      options: ["auto", "en", "ru"],
+      experimental_optionLabels: {
+        auto: st("settings.language.auto"),
+        en: st("settings.language.en"),
+        ru: st("settings.language.ru"),
+      },
       default: "auto",
       experimental_schema: z.enum(["auto", "en", "ru"]),
     },
     sort: {
-      type: "string",
-      label: "Card sort order",
-      description: "Order of cards within a lane: manual (drag & drop), due date, or priority.",
+      type: "select",
+      label: st("settings.sort"),
+      description: st("settings.sort.desc"),
+      options: ["manual", "due", "priority"],
+      experimental_optionLabels: {
+        manual: st("settings.sort.manual"),
+        due: st("settings.sort.due"),
+        priority: st("settings.sort.priority"),
+      },
       default: "due",
       experimental_schema: z.enum(["manual", "due", "priority"]),
     },
     cardDescription: {
       type: "boolean",
-      label: "Description on cards",
-      description: "Show a two-line description preview on each card.",
+      label: st("settings.cardDescription"),
+      description: st("settings.cardDescription.desc"),
       default: true,
     },
     showBacklog: {
       type: "boolean",
-      label: "Backlog lane",
-      description: "Show the Backlog column on the board.",
+      label: st("settings.showBacklog"),
       default: true,
     },
     showTodo: {
       type: "boolean",
-      label: "To Do lane",
-      description: "Show the To Do column on the board.",
+      label: st("settings.showTodo"),
       default: true,
     },
     showInProgress: {
       type: "boolean",
-      label: "In Progress lane",
-      description: "Show the In Progress column on the board.",
+      label: st("settings.showInProgress"),
       default: true,
     },
     showInReview: {
       type: "boolean",
-      label: "In Review lane",
-      description: "Show the In Review column on the board.",
+      label: st("settings.showInReview"),
       default: true,
     },
     showDone: {
       type: "boolean",
-      label: "Done lane",
-      description: "Show the Done column on the board.",
+      label: st("settings.showDone"),
       default: true,
     },
     showCanceled: {
       type: "boolean",
-      label: "Canceled lane",
-      description: "Show the Canceled column on the board.",
+      label: st("settings.showCanceled"),
       default: true,
     },
   });

@@ -4,6 +4,21 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-11-14
+
+### Changed
+
+- Settings page labels are now localized (RU/EN) at plugin load from the
+  host/browser locale, instead of hardcoded English.
+- Board language and Card sort order settings use proper select controls
+  with localized option labels.
+
+### Documentation
+
+- README (EN/RU): documented that settings-page labels and the sidebar
+  panel title are fixed at plugin load (host/browser language), while the
+  board content always follows the Board language setting.
+
 ## [0.2.0] - 2026-11-14
 
 ### Added

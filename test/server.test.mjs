@@ -352,6 +352,37 @@ test("a settings change publishes the board channel", async () => {
   assert.equal(published.at(-1)[1].settings, true);
 });
 
+test("settings descriptors are complete with select controls", async () => {
+  const { api } = await loadPlugin({});
+  assert.ok(api.settingDescriptors, "factory must call bb.settings.define");
+  const keys = [
+    "language",
+    "sort",
+    "cardDescription",
+    "showBacklog",
+    "showTodo",
+    "showInProgress",
+    "showInReview",
+    "showDone",
+    "showCanceled",
+  ];
+  for (const key of keys) {
+    assert.ok(api.settingDescriptors[key], `missing descriptor ${key}`);
+    assert.equal(typeof api.settingDescriptors[key].label, "string");
+    assert.ok(api.settingDescriptors[key].label.length > 0);
+  }
+  assert.deepEqual(api.settingDescriptors.language.options, [
+    "auto",
+    "en",
+    "ru",
+  ]);
+  assert.deepEqual(api.settingDescriptors.sort.options, [
+    "manual",
+    "due",
+    "priority",
+  ]);
+});
+
 test("board_settings input schemas are strict", () => {
   const getInput = mod.rpcContract.board_settings_get.input;
   assert.deepEqual(getInput.parse(null), null);

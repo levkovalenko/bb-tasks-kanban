@@ -51,6 +51,27 @@ export const en = {
   "toast.deleted": "{key} deleted",
   "toast.created": "Task {key} created",
   "toast.moved": "{key} moved to {status}",
+  // Settings page labels (host-rendered; localized at plugin load from the
+  // host/browser locale, since the server cannot see the user's setting yet).
+  "settings.language": "Board language",
+  "settings.language.desc": "Interface language: auto (follow the browser), English, or Russian.",
+  "settings.language.auto": "Auto (browser)",
+  "settings.language.en": "English",
+  "settings.language.ru": "Russian",
+  "settings.sort": "Card sort order",
+  "settings.sort.desc":
+    "Order of cards within a lane: manual (drag & drop), due date, or priority.",
+  "settings.sort.manual": "Manual (drag & drop)",
+  "settings.sort.due": "Due date",
+  "settings.sort.priority": "Priority",
+  "settings.cardDescription": "Description on cards",
+  "settings.cardDescription.desc": "Show a two-line description preview on each card.",
+  "settings.showBacklog": "Backlog lane",
+  "settings.showTodo": "To Do lane",
+  "settings.showInProgress": "In Progress lane",
+  "settings.showInReview": "In Review lane",
+  "settings.showDone": "Done lane",
+  "settings.showCanceled": "Canceled lane",
 } as const;
 
 export const ru = {
@@ -97,6 +118,27 @@ export const ru = {
   "toast.deleted": "{key} удалена",
   "toast.created": "Создана задача {key}",
   "toast.moved": "{key} перенесена в «{status}»",
+  // Подписи страницы настроек (рендерит хост; локализируются на загрузке
+  // плагина по локали хоста/браузера — настройку пользователь ещё не выбрал).
+  "settings.language": "Язык доски",
+  "settings.language.desc": "Язык интерфейса: auto (по браузеру), английский или русский.",
+  "settings.language.auto": "Авто (по браузеру)",
+  "settings.language.en": "Английский",
+  "settings.language.ru": "Русский",
+  "settings.sort": "Сортировка карточек",
+  "settings.sort.desc":
+    "Порядок карточек в колонке: вручную (drag&drop), по дедлайну или по приоритету.",
+  "settings.sort.manual": "Вручную (drag&drop)",
+  "settings.sort.due": "По дедлайну",
+  "settings.sort.priority": "По приоритету",
+  "settings.cardDescription": "Описание на карточках",
+  "settings.cardDescription.desc": "Двухстрочный превью описания на каждой карточке.",
+  "settings.showBacklog": "Колонка «Бэклог»",
+  "settings.showTodo": "Колонка «К исполнению»",
+  "settings.showInProgress": "Колонка «В работе»",
+  "settings.showInReview": "Колонка «На проверке»",
+  "settings.showDone": "Колонка «Готово»",
+  "settings.showCanceled": "Колонка «Отменено»",
 } as const;
 
 export type MessageKey = keyof typeof en;
