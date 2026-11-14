@@ -4,6 +4,22 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-11-14
+
+### Added
+
+- Plugin settings, rendered by the host on the plugin's settings page:
+  - **Board language** (`auto` / `en` / `ru`) — overrides the browser-based
+    locale detection; the board re-renders in the chosen language.
+  - **Card sort order** (`manual` / `due` / `priority`, default `due`) —
+    order of cards within a lane.
+  - **Description on cards** — two-line description preview, default on.
+  - **Lane visibility** — show or hide any of the six status columns
+    (for example, hide Canceled for a five-column board).
+- `board_settings_get` / `board_settings_set` RPC methods.
+- Settings changes publish on `tasks-kanban-changed`, so every open board
+  reacts immediately — no reload needed.
+
 ## [0.1.1] - 2026-11-14
 
 ### Changed

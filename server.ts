@@ -110,6 +110,42 @@ const outComments = z.object({ comments: z.array(commentSchema) });
 const outComment = z.object({ comment: commentSchema });
 const outLabel = z.object({ label: labelSchema });
 
+// ---------------------------------------------------------------------------
+// Board settings (bb.settings.define): user preferences for the board UI.
+// The host renders these on the plugin's settings page; values below are
+// the effective (stored-over-defaults) shape the board receives.
+// ---------------------------------------------------------------------------
+
+export const boardSettingsSchema = z.object({
+  /** UI language: auto (follow the browser), en, or ru. */
+  language: z.enum(["auto", "en", "ru"]),
+  /** Card order within a lane. */
+  sort: z.enum(["manual", "due", "priority"]),
+  /** Show a two-line description preview on cards. */
+  cardDescription: z.boolean(),
+  showBacklog: z.boolean(),
+  showTodo: z.boolean(),
+  showInProgress: z.boolean(),
+  showInReview: z.boolean(),
+  showDone: z.boolean(),
+  showCanceled: z.boolean(),
+});
+export type BoardSettings = z.infer<typeof boardSettingsSchema>;
+
+const boardSettingsPatchSchema = z
+  .object({
+    language: z.enum(["auto", "en", "ru"]).optional(),
+    sort: z.enum(["manual", "due", "priority"]).optional(),
+    cardDescription: z.boolean().optional(),
+    showBacklog: z.boolean().optional(),
+    showTodo: z.boolean().optional(),
+    showInProgress: z.boolean().optional(),
+    showInReview: z.boolean().optional(),
+    showDone: z.boolean().optional(),
+    showCanceled: z.boolean().optional(),
+  })
+  .strict();
+
 // Filters accepted by tasks' listAllTasks.
 const listFilters = z.object({
   projectId: id.optional(),
@@ -144,6 +180,14 @@ export const rpcContract = defineRpcContract({
   board_labels: {
     input: z.object({ projectId: id }),
     output: z.object({ labels: z.array(labelSchema) }),
+  },
+  board_settings_get: {
+    input: z.null(),
+    output: boardSettingsSchema,
+  },
+  board_settings_set: {
+    input: boardSettingsPatchSchema,
+    output: boardSettingsSchema,
   },
   board_update: {
     input: z
@@ -243,6 +287,69 @@ export default async function plugin(bb: BbPluginApi) {
 
   const tasks = () => proxy(bb);
 
+  // Declarative settings: the host renders them on this plugin's settings
+  // page. onChange fires on every effective-value change, so every open
+  // board refetches (the channel also covers task writes).
+  const settings = bb.settings.define({
+    language: {
+      type: "string",
+      label: "Board language",
+      description: "Interface language: auto (follow the browser), en, or ru.",
+      default: "auto",
+      experimental_schema: z.enum(["auto", "en", "ru"]),
+    },
+    sort: {
+      type: "string",
+      label: "Card sort order",
+      description: "Order of cards within a lane: manual (drag & drop), due date, or priority.",
+      default: "due",
+      experimental_schema: z.enum(["manual", "due", "priority"]),
+    },
+    cardDescription: {
+      type: "boolean",
+      label: "Description on cards",
+      description: "Show a two-line description preview on each card.",
+      default: true,
+    },
+    showBacklog: {
+      type: "boolean",
+      label: "Backlog lane",
+      description: "Show the Backlog column on the board.",
+      default: true,
+    },
+    showTodo: {
+      type: "boolean",
+      label: "To Do lane",
+      description: "Show the To Do column on the board.",
+      default: true,
+    },
+    showInProgress: {
+      type: "boolean",
+      label: "In Progress lane",
+      description: "Show the In Progress column on the board.",
+      default: true,
+    },
+    showInReview: {
+      type: "boolean",
+      label: "In Review lane",
+      description: "Show the In Review column on the board.",
+      default: true,
+    },
+    showDone: {
+      type: "boolean",
+      label: "Done lane",
+      description: "Show the Done column on the board.",
+      default: true,
+    },
+    showCanceled: {
+      type: "boolean",
+      label: "Canceled lane",
+      description: "Show the Canceled column on the board.",
+      default: true,
+    },
+  });
+  settings.onChange(() => emit(bb, { settings: true }));
+
   bb.rpc.register(rpcContract, {
     board_projects: async () => {
       const [projects, bbProjects] = await Promise.all([
@@ -266,6 +373,10 @@ export default async function plugin(bb: BbPluginApi) {
       const res = await tasks().call("listLabels", { projectId }, outLabels);
       return { labels: res.labels };
     },
+
+    board_settings_get: async () => settings.get(),
+
+    board_settings_set: async (patch) => settings.experimental_set(patch),
 
     board_update: async (patch) => {
       const res = await tasks().call("updateTask", patch, taskResult);

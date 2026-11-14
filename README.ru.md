@@ -41,7 +41,7 @@ bb plugin install tasks-kanban@levkovalenko-plugins
 Или напрямую из Git:
 
 ```sh
-bb plugin install git:https://github.com/levkovalenko/bb-tasks-kanban.git@v0.1.0
+bb plugin install git:https://github.com/levkovalenko/bb-tasks-kanban.git@v0.2.0
 ```
 
 Дальше откройте вкладку **«Доска задач»** (иконка SectionMove) в левом сайдбаре
@@ -61,6 +61,20 @@ app.tsx (канбан UI)
         └─> bb.sdk.plugins.callRpc({ pluginId: "tasks", … })
               └─> встроенный tasks-плагин — та же БД, что у `bb tasks`
 ```
+
+## Настройки
+
+На странице настроек плагина (Tools → Tasks Kanban):
+
+- **Board language (Язык доски)** — `auto` (как у браузера), `en`, `ru`.
+- **Card sort order (Сортировка карточек)** — `manual` (порядок drag&drop),
+  `due` (по дедлайну, по умолчанию), `priority`.
+- **Description on cards (Описание на карточках)** — двухстрочный превью
+  описания на каждой карточке.
+- **Переключатели колонок** — показать/скрыть любую из шести колонок
+  (например, спрятать «Отменено» для доски из пяти колонок).
+
+Изменения применяются к открытой доске мгновенно, без перезагрузки.
 
 ## Разработка
 

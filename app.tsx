@@ -25,11 +25,18 @@ import {
   useRpc,
 } from "@get-bb/plugin-sdk/app";
 import { toast } from "sonner";
-import type { Label, Task, TaskProject, rpcContract } from "./server";
+import type {
+  BoardSettings,
+  Label,
+  Task,
+  TaskProject,
+  rpcContract,
+} from "./server";
 import { BOARD_CHANGED_CHANNEL } from "./server";
 import {
   detectLocale,
   translate,
+  type Locale,
   type MessageKey,
 } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
@@ -81,16 +88,21 @@ const PRIORITY_TONE: Record<Priority, string> = {
   none: "hidden",
 };
 
-// Locale is fixed for the lifetime of the loaded app bundle.
-const LOCALE = detectLocale();
-function t(key: MessageKey, vars?: Record<string, string | number>): string {
-  return translate(LOCALE, key, vars);
+// UI locale: starts from the browser language, then follows the "Board
+// language" setting (auto keeps the browser language). Components read t()
+// from context, so changing the setting re-renders the board in place.
+export type TFn = (
+  key: MessageKey,
+  vars?: Record<string, string | number>,
+) => string;
+const TCtx = createContext<TFn>((key, vars) =>
+  translate(detectLocale(), key, vars),
+);
+function useT(): TFn {
+  return useContext(TCtx);
 }
-function laneTitle(status: Status): string {
-  return t(`lanes.${status}` as MessageKey);
-}
-function priorityLabel(priority: Priority): string {
-  return t(`priorities.${priority}` as MessageKey);
+function localeFromSetting(language?: "auto" | "en" | "ru"): Locale {
+  return language === "en" ? "en" : language === "ru" ? "ru" : detectLocale();
 }
 
 function msg(cause: unknown): string {
@@ -105,6 +117,7 @@ function useBoard() {
   const [selected, setSelected] = useState<string | null>(null);
   const [tasks, setTasks] = useState<Task[] | null>(null);
   const [labels, setLabels] = useState<Label[]>([]);
+  const [settings, setSettings] = useState<BoardSettings | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const loadProjects = useCallback(() => {
@@ -126,7 +139,11 @@ function useBoard() {
   const loadTasks = useCallback(() => {
     if (selected === null) return;
     rpc
-      .call("board_tasks", { projectId: selected, activeOnly: false, sort: "due" })
+      .call("board_tasks", {
+        projectId: selected,
+        activeOnly: false,
+        sort: settings?.sort ?? "due",
+      })
       .then((res) => {
         setTasks(res.tasks);
         setError(null);
@@ -136,7 +153,14 @@ function useBoard() {
       .call("board_labels", { projectId: selected })
       .then((res) => setLabels(res.labels))
       .catch(() => undefined);
-  }, [rpc, selected]);
+  }, [rpc, selected, settings]);
+
+  const loadSettings = useCallback(() => {
+    rpc
+      .call("board_settings_get", null)
+      .then(setSettings)
+      .catch(() => undefined);
+  }, [rpc]);
 
   const refetch = useCallback(() => {
     loadProjects();
@@ -149,9 +173,16 @@ function useBoard() {
   useEffect(() => {
     loadTasks();
   }, [loadTasks]);
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
   // server.ts publishes after every write — from this page, another client,
-  // the bb tasks CLI, or an agent — so the board never goes stale.
-  useRealtime(BOARD_CHANGED_CHANNEL, loadTasks);
+  // the bb tasks CLI, or an agent — and after every settings change, so the
+  // board never goes stale.
+  useRealtime(BOARD_CHANGED_CHANNEL, () => {
+    loadTasks();
+    loadSettings();
+  });
 
   return {
     rpc,
@@ -160,6 +191,7 @@ function useBoard() {
     setSelected,
     tasks,
     labels,
+    settings,
     error,
     setError,
     refetch,
@@ -183,16 +215,19 @@ function dueTone(due: string | null, status: Status): string {
 function Card({
   task,
   labelNames,
+  showDescription,
   onOpen,
   onDragStart,
   onDropBefore,
 }: {
   task: Task;
   labelNames: Map<string, string>;
+  showDescription: boolean;
   onOpen: () => void;
   onDragStart: (e: DragEvent) => void;
   onDropBefore: (e: DragEvent) => void;
 }) {
+  const t = useT();
   const dueCls = dueTone(task.dueDate, task.status);
   const overdue = dueCls !== "";
   return (
@@ -213,7 +248,7 @@ function Card({
               PRIORITY_TONE[task.priority],
             )}
           >
-            {priorityLabel(task.priority)}
+            {t(`priorities.${task.priority}` as MessageKey)}
           </span>
         ) : null}
         {task.dueDate ? (
@@ -229,7 +264,7 @@ function Card({
         ) : null}
       </div>
       <p className="mt-1 text-sm leading-snug">{task.title}</p>
-      {task.description ? (
+      {showDescription && task.description ? (
         <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
           {task.description}
         </p>
@@ -255,6 +290,7 @@ function Lane({
   lane,
   tasks,
   labelNames,
+  showDescription,
   onOpen,
   onDropTask,
   onDropBefore,
@@ -262,10 +298,12 @@ function Lane({
   lane: (typeof LANES)[number];
   tasks: Task[];
   labelNames: Map<string, string>;
+  showDescription: boolean;
   onOpen: (task: Task) => void;
   onDropTask: (taskId: string, status: Status) => void;
   onDropBefore: (taskId: string, status: Status, beforeTaskId: string) => void;
 }) {
+  const t = useT();
   const [over, setOver] = useState(false);
   return (
     <div
@@ -295,6 +333,7 @@ function Lane({
             key={task.id}
             task={task}
             labelNames={labelNames}
+            showDescription={showDescription}
             onOpen={() => onOpen(task)}
             onDragStart={(e) => {
               e.dataTransfer.setData("text/task-id", task.id);
@@ -335,6 +374,7 @@ function TaskDialog({
   onSaved: () => void;
 }) {
   const { rpc } = useBoardInner();
+  const t = useT();
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description);
   const [status, setStatus] = useState<Status>(task.status);
@@ -453,7 +493,7 @@ function TaskDialog({
             >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
-                  {laneTitle(s)}
+                  {t(`lanes.${s}` as MessageKey)}
                 </option>
               ))}
             </select>
@@ -467,7 +507,7 @@ function TaskDialog({
             >
               {PRIORITIES.map((p) => (
                 <option key={p} value={p}>
-                  {priorityLabel(p)}
+                  {t(`priorities.${p}` as MessageKey)}
                 </option>
               ))}
             </select>
@@ -587,6 +627,7 @@ function NewTaskDialog({
   onCreated: () => void;
 }) {
   const { rpc } = useBoardInner();
+  const t = useT();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<Status>("todo");
@@ -652,7 +693,7 @@ function NewTaskDialog({
               >
                 {STATUSES.map((s) => (
                   <option key={s} value={s}>
-                    {laneTitle(s)}
+                    {t(`lanes.${s}` as MessageKey)}
                   </option>
                 ))}
               </select>
@@ -666,7 +707,7 @@ function NewTaskDialog({
               >
                 {PRIORITIES.map((p) => (
                   <option key={p} value={p}>
-                    {priorityLabel(p)}
+                    {t(`priorities.${p}` as MessageKey)}
                   </option>
                 ))}
               </select>
@@ -722,7 +763,8 @@ function NewTaskDialog({
 
 function BoardPage() {
   const board = useBoard();
-  const { taskProjects, selected, setSelected, tasks, labels, error } = board;
+  const { taskProjects, selected, setSelected, tasks, labels, settings, error } =
+    board;
   const { rpc } = board;
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [creating, setCreating] = useState(false);
@@ -732,6 +774,24 @@ function BoardPage() {
     () => new Map(labels.map((l) => [l.id, l.name])),
     [labels],
   );
+  // UI locale: the "Board language" setting, auto = browser language.
+  const locale = localeFromSetting(settings?.language);
+  const t = useCallback<TFn>(
+    (key, vars) => translate(locale, key, vars),
+    [locale],
+  );
+  // Lanes the user wants visible (every column is toggleable in settings).
+  const visibleLanes = useMemo(() => {
+    const visible: Record<Status, boolean> = {
+      backlog: settings?.showBacklog ?? true,
+      todo: settings?.showTodo ?? true,
+      in_progress: settings?.showInProgress ?? true,
+      in_review: settings?.showInReview ?? true,
+      done: settings?.showDone ?? true,
+      canceled: settings?.showCanceled ?? true,
+    };
+    return LANES.filter((lane) => visible[lane.id]);
+  }, [settings]);
   const byLane = useMemo(() => {
     const map = new Map<Status, Task[]>();
     for (const lane of LANES) map.set(lane.id, []);
@@ -756,7 +816,8 @@ function BoardPage() {
   );
 
   return (
-    <BoardCtx.Provider value={board}>
+    <TCtx.Provider value={t}>
+      <BoardCtx.Provider value={board}>
       <div className="flex h-full min-h-0 flex-col">
         <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2.5">
           <h1 className="text-sm font-semibold">{t("panel.title")}</h1>
@@ -798,12 +859,13 @@ function BoardPage() {
           </p>
         ) : null}
         <div className="flex flex-1 gap-3 overflow-x-auto px-4 py-3">
-          {LANES.map((lane) => (
+          {visibleLanes.map((lane) => (
             <Lane
               key={lane.id}
               lane={lane}
               tasks={byLane.get(lane.id) ?? []}
               labelNames={labelNames}
+              showDescription={settings?.cardDescription ?? true}
               onOpen={setOpenTask}
               onDropTask={(taskId, status) => move(taskId, status)}
               onDropBefore={(taskId, status, before) => move(taskId, status, before)}
@@ -828,7 +890,8 @@ function BoardPage() {
           />
         ) : null}
       </div>
-    </BoardCtx.Provider>
+      </BoardCtx.Provider>
+    </TCtx.Provider>
   );
 }
 
@@ -837,8 +900,9 @@ function BoardPage() {
 export default definePluginApp((app) => {
   app.slots.navPanel({
     id: "board",
-    // The panel label follows the UI locale (en/ru), same as every string.
-    title: t("panel.title"),
+    // Panel label from the initial locale (slot registration is static);
+    // the board content itself follows the "Board language" setting.
+    title: translate(detectLocale(), "panel.title"),
     icon: "SectionMove",
     path: "board",
     component: BoardPage,

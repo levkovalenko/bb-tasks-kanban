@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/levkovalenko/bb-tasks-kanban/actions/workflows/ci.yml/badge.svg)](https://github.com/levkovalenko/bb-tasks-kanban/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
-[![bb plugin](https://img.shields.io/badge/bb-plugin-0.1.0-brightgreen)](./package.json)
+[![bb plugin](https://img.shields.io/badge/bb-plugin-0.2.0-brightgreen)](./package.json)
 
 **Русская версия: [README.ru.md](./README.ru.md)**
 
@@ -43,7 +43,7 @@ bb plugin install tasks-kanban@levkovalenko-plugins
 Or directly from Git:
 
 ```sh
-bb plugin install git:https://github.com/levkovalenko/bb-tasks-kanban.git@v0.1.0
+bb plugin install git:https://github.com/levkovalenko/bb-tasks-kanban.git@v0.2.0
 ```
 
 Then open the **Task board** panel (SectionMove icon) in the left sidebar — it is
@@ -63,6 +63,19 @@ app.tsx (Kanban UI)
         └─> bb.sdk.plugins.callRpc({ pluginId: "tasks", … })
               └─> built-in tasks plugin — same DB as `bb tasks`
 ```
+
+## Settings
+
+On the plugin's settings page (Tools → Tasks Kanban):
+
+- **Board language** — `auto` (follow the browser), `en`, or `ru`.
+- **Card sort order** — `manual` (drag & drop order), `due` (due date,
+  default), or `priority`.
+- **Description on cards** — two-line description preview on each card.
+- **Lane toggles** — show or hide any of the six columns (e.g. hide
+  Canceled for a five-column board).
+
+Changes apply to the open board immediately, no reload needed.
 
 ## Development
 

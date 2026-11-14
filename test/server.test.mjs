@@ -41,6 +41,17 @@ function fakeBbApi(results = {}) {
   const calls = [];
   const published = [];
   const disposed = [];
+  const settingsValues = {
+    language: "auto",
+    sort: "due",
+    cardDescription: true,
+    showBacklog: true,
+    showTodo: true,
+    showInProgress: true,
+    showInReview: true,
+    showDone: true,
+    showCanceled: true,
+  };
   const api = {
     pluginId: "tasks-kanban",
     log: {
@@ -49,7 +60,22 @@ function fakeBbApi(results = {}) {
       error: () => {},
       debug: () => {},
     },
-    settings: {},
+    settingValues: settingsValues,
+    settings: {
+      define: (descriptors) => {
+        api.settingDescriptors = descriptors;
+        return {
+          get: async () => ({ ...settingsValues }),
+          experimental_set: async (patch) => {
+            Object.assign(settingsValues, patch);
+            return { ...settingsValues };
+          },
+          onChange: (fn) => {
+            api.settingChange = fn;
+          },
+        };
+      },
+    },
     storage: { kv: {} },
     http: {},
     rpc: {
@@ -79,15 +105,17 @@ function fakeBbApi(results = {}) {
     },
     onDispose: (hook) => disposed.push(hook),
   };
-  return { api, calls, published, disposed };
+  return { api, calls, published, disposed, settingsValues };
 }
 
 async function loadPlugin(results) {
-  const { api, calls, published, disposed } = fakeBbApi(results);
+  const { api, calls, published, disposed, settingsValues } = fakeBbApi(
+    results,
+  );
   await mod.default(api);
   assert.ok(api.contract, "factory must call bb.rpc.register");
   assert.ok(api.handlers, "factory must register handlers");
-  return { api, calls, published, disposed };
+  return { api, calls, published, disposed, settingsValues };
 }
 
 const ALL_METHODS = [
@@ -95,6 +123,8 @@ const ALL_METHODS = [
   "board_tasks",
   "board_task",
   "board_labels",
+  "board_settings_get",
+  "board_settings_set",
   "board_update",
   "board_create",
   "board_delete",
@@ -289,6 +319,47 @@ test("board_label forwards createLabel and emits", async () => {
   assert.deepEqual(calls[0].input, input);
   assert.deepEqual(res, { label });
   assert.equal(published.length, 1);
+});
+
+test("board_settings_get returns the effective settings", async () => {
+  const { api } = await loadPlugin({});
+  const res = await api.handlers.board_settings_get(null);
+  assert.equal(res.language, "auto");
+  assert.equal(res.sort, "due");
+  assert.equal(res.cardDescription, true);
+  assert.equal(res.showCanceled, true);
+});
+
+test("board_settings_set persists a patch and returns effective values", async () => {
+  const { api, settingsValues } = await loadPlugin({});
+  const res = await api.handlers.board_settings_set({
+    language: "ru",
+    showCanceled: false,
+  });
+  assert.equal(res.language, "ru");
+  assert.equal(res.showCanceled, false);
+  assert.equal(res.cardDescription, true, "untouched keys keep defaults");
+  assert.equal(settingsValues.language, "ru");
+  assert.equal(settingsValues.showCanceled, false);
+});
+
+test("a settings change publishes the board channel", async () => {
+  const { api, published } = await loadPlugin({});
+  const before = published.length;
+  api.settingChange({ language: "ru" }, { language: "auto" });
+  assert.equal(published.length, before + 1);
+  assert.equal(published.at(-1)[0], CHANNEL);
+  assert.equal(published.at(-1)[1].settings, true);
+});
+
+test("board_settings input schemas are strict", () => {
+  const getInput = mod.rpcContract.board_settings_get.input;
+  assert.deepEqual(getInput.parse(null), null);
+  assert.throws(() => getInput.parse({}));
+  const setInput = mod.rpcContract.board_settings_set.input;
+  assert.doesNotThrow(() => setInput.parse({ sort: "priority" }));
+  assert.throws(() => setInput.parse({ sort: "rating" }));
+  assert.throws(() => setInput.parse({ bogus: 1 }));
 });
 
 test("task output schema accepts a valid row and rejects a bad status", () => {
