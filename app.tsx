@@ -25,6 +25,8 @@ import {
   useRpc,
 } from "@get-bb/plugin-sdk/app";
 import { toast } from "sonner";
+// Type-only import: the inferred contract types are erased at build time,
+// so the app bundle never reaches the server implementation.
 import type {
   BoardSettings,
   Label,
@@ -32,7 +34,8 @@ import type {
   TaskProject,
   rpcContract,
 } from "./server";
-import { BOARD_CHANGED_CHANNEL } from "./server";
+// The channel constant lives in the browser-safe shared module.
+import { BOARD_CHANGED_CHANNEL } from "@/lib/board";
 import {
   detectLocale,
   translate,

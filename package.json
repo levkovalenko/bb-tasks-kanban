@@ -1,6 +1,6 @@
 {
   "name": "bb-plugin-tasks-kanban",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "A live Kanban board for BB's built-in Tasks: drag & drop across all six statuses, create, edit, comment, label. Russian and English UI.",
   "type": "module",
   "license": "MIT",

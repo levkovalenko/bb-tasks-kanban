@@ -11,6 +11,7 @@
 
 import { defineRpcContract, type BbPluginApi } from "@get-bb/plugin-sdk";
 import { z } from "zod";
+import { BOARD_CHANGED_CHANNEL } from "./lib/board";
 import { detectLocale, translate, type MessageKey } from "./lib/i18n";
 
 // ---------------------------------------------------------------------------
@@ -251,10 +252,6 @@ export const rpcContract = defineRpcContract({
     output: z.object({ label: labelSchema }),
   },
 });
-
-// Realtime channel app.tsx listens on; published after every write so every
-// open board refetches, no matter which surface made the change.
-export const BOARD_CHANGED_CHANNEL = "tasks-kanban-changed";
 
 /** Proxy one method of the built-in tasks plugin. */
 function proxy(bb: BbPluginApi) {
